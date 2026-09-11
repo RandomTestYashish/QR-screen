@@ -1,0 +1,118 @@
+# Access Pass
+
+A premium mobile QR identity-card experience, built as a polished prototype.
+Primary canvas is **375 × 812**.
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build
+```
+
+## Stack
+
+React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui (Radix) primitives ·
+Lucide icons · self-hosted Sora. No animation or 3D library — the motion is
+Web Animations API and CSS transforms throughout.
+
+## What's here
+
+```
+src/
+  lib/
+    pattern.ts      QR pattern model + the prototype 8x8 provider
+    flip.ts         shared-element (FLIP) transition between tile and card
+    tilt.ts         device-orientation engine with smoothing + pointer fallback
+  components/
+    qr/qr-grid.tsx  circular-module renderer (size-agnostic)
+    qr/qr-tile.tsx  the compact pass on the home screen
+    pass-card.tsx   the expanded pass
+    qr-modal.tsx    phase machine wiring Radix Dialog to the FLIP
+    surface/glitter-surface.tsx   tilt-reactive iridescent glitter
+    ui/             shadcn/ui button + dialog
+```
+
+## The QR is a visual prototype
+
+It encodes nothing and is not scannable. The field is QR-*inspired*: three 2×2
+corner anchors with a one-module quiet band around each (the way real finder
+patterns are separated), one alignment accent in the open corner, and a
+pseudo-random body held to 44–58% density. Every module is a circle; there are
+no squares anywhere.
+
+Real encoding drops in without touching the UI. Everything downstream consumes
+`PassPattern` and nothing else, and `QRGrid` draws an arbitrary `size` from its
+viewBox — so a 21×21 version-1 symbol renders at the same proportions. Add a
+second `PatternProvider` (see the worked sketch at the top of `lib/pattern.ts`)
+and pass it to `createPattern`.
+
+## The tile → card transition
+
+The FLIP transform is solved from the two **QR boxes**, not the two card boxes.
+That is the whole trick: the QR is what the eye tracks, so pinning it to a
+pixel-exact match at t=0 makes the card read as the same physical object
+expanding. Both boxes are square, so the scale stays uniform — no stretch, no
+counter-scaling of text.
+
+Measured on the first animation frame: the card's QR sits at `x=48, y=372.9,
+w=88`, against a tile QR of `x=48, y=372.94, w=88`.
+
+Around that, the card surface fades up and its radius opens from the tile's 24px
+(pre-divided by the scale, so it *reads* as 24px throughout), and the header,
+details and refresh row settle in on a 40ms stagger. 560ms out, 440ms back, on
+`cubic-bezier(0.2, 0, 0, 1)` — monotonic, no overshoot.
+
+Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
+
+## Tilt and glitter
+
+`TiltEngine` runs one rAF loop that smooths `deviceorientation` into two
+normalised axes, calibrating against however the phone was held when the card
+opened. Subscribers write transforms straight to the DOM — no React state per
+frame — and the loop **parks itself once the value converges**, so an idle card
+costs nothing. Max rotation ±6°, max parallax 9px, exponential damping with a
+deadzone. No sensor (or permission refused) falls back to pointer movement over
+the card; `prefers-reduced-motion` parks the engine entirely.
+
+The glitter is ~240 micro-flecks painted into the card's own surface, sized in
+*device* pixels so the common fleck is a third of a CSS pixel on a 3× screen.
+Each has a fixed facet angle; tilting changes which facets face the light, so
+the reflected colour redistributes toward the tilt. There is no shimmer beam and
+no sparkle loop — the draw is gated on a tilt delta, so nothing runs at rest.
+The palette is mostly achromatic silver with a minority of restrained steel,
+violet, gold and teal facets. The glitter sits on its own layer behind the QR
+and never touches its contrast.
+
+## Design system
+
+**8pt grid** throughout — screen padding, card padding, type gaps, button
+padding, section spacing. Card 327px wide (375 − 24 either side), modal QR 216,
+tile 136 with an 88 QR.
+
+**Sora only**, self-hosted as a variable font, 300–700. Hierarchy comes from
+size, weight and italic rather than a second family. Sora ships no true italic,
+so the few editorial accents use a synthesised oblique — which is why they're
+used sparingly and at small sizes.
+
+**Two hand-tuned themes**, not a mechanical inversion: dark is near-black
+gradient with off-white type and white modules; light is warm paper with
+graphite type, a cooler card and black modules. Both share one token set and
+cross-fade over 420ms. The choice is resolved before first paint, so there is no
+flash.
+
+## Accessibility
+
+Every control is labelled. The card is a Radix dialog — focus trap, escape,
+outside-press, `aria-labelledby` and `aria-describedby` all come from the
+primitive; only the motion is ours. Focus moves to the close button on open and
+returns to the tile on close. Reduced motion swaps the FLIP for a 160ms fade and
+stops the tilt engine.
+
+## Notes
+
+- Magic UI is deliberately not a dependency. The glitter is a Magic UI–style
+  canvas particle surface, but tilt-reactivity and the idle-gating aren't
+  something its components do, so it is written here rather than pulled in.
+- Sensor permission is requested from inside the tap that opens the card (iOS
+  requires a user gesture) and never blocks: a refusal just leaves the pointer
+  fallback in play.

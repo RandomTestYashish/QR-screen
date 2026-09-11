@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#050507" />
+    <title>Access Pass</title>
+
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/sora-latin.woff2"
+      crossorigin
+    />
+
+    <script>
+      // Resolve the theme before first paint so there is no flash of the wrong surface.
+      try {
+        var stored = localStorage.getItem("pass.theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch (e) {
+        /* storage unavailable — keep the dark default */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

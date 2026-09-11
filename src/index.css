@@ -1,0 +1,273 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Sora, self-hosted.
+ * One family for the whole experience — hierarchy comes from size,
+ * weight and italic, never from a second typeface. Sora ships no true
+ * italic, so the few editorial accents use a synthesised oblique; it is
+ * used sparingly and at small sizes for exactly that reason.
+ * ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/sora-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/sora-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ * Two hand-tuned themes — not a mechanical inversion. Dark leans on a
+ * near-black gradient with off-white type; light leans on warm paper
+ * with graphite type and a cooler card.
+ * ------------------------------------------------------------------ */
+
+:root,
+[data-theme="dark"] {
+  --bg: #050507;
+  --bg-2: #0b0b11;
+  --bg-glow: 218 24% 42%;
+
+  --ink: #f7f7f4;
+  --ink-2: #9c9ca6;
+  --ink-3: #5e5e68;
+
+  --card-a: #1a1a21;
+  --card-b: #101016;
+  --card-c: #07070b;
+  --card-edge: rgb(255 255 255 / 0.09);
+  --card-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.9);
+
+  --module: #ffffff;
+  --module-dim: rgb(255 255 255 / 0.06);
+
+  --hairline: rgb(255 255 255 / 0.08);
+  --chip: rgb(255 255 255 / 0.06);
+  --accent: #b9f2d0;
+
+  --scrim: rgb(3 3 5 / 0.72);
+  --glitter-blend: screen;
+  --glitter-alpha: 0.9;
+}
+
+[data-theme="light"] {
+  --bg: #f2f1ed;
+  --bg-2: #fbfbf9;
+  --bg-glow: 220 30% 70%;
+
+  --ink: #0a0a0d;
+  --ink-2: #6d6d77;
+  --ink-3: #a3a3ad;
+
+  --card-a: #ffffff;
+  --card-b: #f4f3f0;
+  --card-c: #e6e5e1;
+  --card-edge: rgb(10 10 13 / 0.08);
+  --card-shadow: 0 24px 56px -28px rgb(24 24 32 / 0.35);
+
+  --module: #0a0a0d;
+  --module-dim: rgb(10 10 13 / 0.07);
+
+  --hairline: rgb(10 10 13 / 0.09);
+  --chip: rgb(10 10 13 / 0.05);
+  --accent: #1f6b47;
+
+  --scrim: rgb(223 222 217 / 0.82);
+  --glitter-blend: multiply;
+  --glitter-alpha: 0.7;
+}
+
+@theme inline {
+  --font-sans: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-hairline: var(--hairline);
+  --color-chip: var(--chip);
+  --color-accent: var(--accent);
+  --color-module: var(--module);
+  --color-module-dim: var(--module-dim);
+
+  --ease-pass: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: #0a0a0c;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: style;
+  overscroll-behavior: none;
+}
+
+[data-theme="light"] body {
+  background: #e8e7e3;
+}
+
+body,
+[data-theme="light"] body {
+  transition: background-color 420ms var(--ease-pass);
+}
+
+#root {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ *
+ * The 375 x 812 canvas.
+ * Fills the screen on a phone, sits as a framed canvas on a desktop.
+ *
+ * These live in @layer components so ordinary Tailwind utilities still
+ * win against them at the call site.
+ * ------------------------------------------------------------------ */
+
+@layer components {
+  .device {
+    position: relative;
+    width: min(375px, 100vw);
+    height: min(812px, 100dvh);
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(
+        120% 68% at 50% -8%,
+        hsl(var(--bg-glow) / 0.16) 0%,
+        transparent 62%
+      ),
+      linear-gradient(176deg, var(--bg-2) 0%, var(--bg) 46%, var(--bg) 100%);
+    transition:
+      background-color 420ms var(--ease-pass),
+      box-shadow 420ms var(--ease-pass);
+  }
+
+  @media (min-width: 420px) and (min-height: 860px) {
+    .device {
+      border-radius: 40px;
+      box-shadow:
+        0 0 0 1px var(--hairline),
+        0 60px 120px -40px rgb(0 0 0 / 0.6);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * The pass surface.
+ * Tile and card share it, so the small tile reads as the same physical
+ * object the modal grows out of.
+ * ------------------------------------------------------------------ */
+
+@layer components {
+  .pass-surface {
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        112% 74% at 18% 0%,
+        rgb(255 255 255 / 0.07) 0%,
+        transparent 58%
+      ),
+      linear-gradient(
+        158deg,
+        var(--card-a) 0%,
+        var(--card-b) 52%,
+        var(--card-c) 100%
+      );
+    box-shadow:
+      inset 0 0 0 1px var(--card-edge),
+      var(--card-shadow);
+    transition:
+      background-color 420ms var(--ease-pass),
+      box-shadow 420ms var(--ease-pass);
+  }
+
+  [data-theme="light"] .pass-surface {
+    background:
+      radial-gradient(
+        112% 74% at 18% 0%,
+        rgb(255 255 255 / 0.9) 0%,
+        transparent 58%
+      ),
+      linear-gradient(
+        158deg,
+        var(--card-a) 0%,
+        var(--card-b) 52%,
+        var(--card-c) 100%
+      );
+  }
+
+  /* Tracking-heavy micro labels. */
+  .eyebrow {
+    font-size: 10px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes token-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
