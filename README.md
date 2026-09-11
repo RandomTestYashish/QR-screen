@@ -110,20 +110,20 @@ w=88`, against a tile QR of `x=48, y=372.94, w=88`.
 
 Around that, the card surface fades up and its radius opens from the tile's 24px
 (pre-divided by the scale, so it *reads* as 24px throughout), and the header,
-details and refresh row settle in behind it. **5000ms out, 240ms back** — the
+details and refresh row settle in behind it. **3000ms out, 240ms back** — the
 entrance is a deliberate slow reveal. The scrim fade and the content stagger
 are derived from `OPEN_DURATION` rather than fixed, so they stay choreographed
 with the growth instead of snapping in while the card is still on its way.
 
 Because the entrance is long, the card is interactive from the moment it is on
 screen rather than once it has landed: gating that on "open" would lock the
-dismiss control out for the whole five seconds. Dismissing mid-growth reverses
+dismiss control out for the whole of it. Dismissing mid-growth reverses
 from wherever the card had got to.
 
 The growth carries an overshoot — `cubic-bezier(0.34, 1.4, 0.64, 1)` — so the
 card runs about 2.5% past its final size and settles back. Note that easing is
-time-normalised: stretched over five seconds the overshoot arrives at ~3.2s and
-drifts back by ~4.8s, which reads as a slow float rather than as a snap. That pop is on the
+time-normalised: stretched over three seconds the overshoot arrives at ~2.0s and
+drifts back by ~3.0s, which reads as a slow float rather than as a snap. That pop is on the
 card's **transform only**; opacity and radius stay on the smooth
 `cubic-bezier(0.4, 0, 0.2, 1)`, since an overshoot there has nothing to
 overshoot into. Closing has no bounce: a shrink that undershoots past the tile
@@ -162,7 +162,8 @@ and never touches its contrast.
 
 The home screen carries one word pair: the pass, labelled `MEMBERS QR` inside
 its own box, on the centre of the screen, with a refresh icon hanging below it
-and a theme toggle in the corner. The refresh control is positioned off a
+and a theme switch in the corner — a segmented pill carrying both icons with a
+knob sliding between them, so the control says what it does without a label. The refresh control is positioned off a
 wrapper sized to the tile, so it cannot pull the box off centre.
 
 The card's dismiss control sits *outside* the card, centred 24px below it. It
