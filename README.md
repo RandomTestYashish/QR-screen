@@ -32,6 +32,29 @@ src/
     ui/             shadcn/ui button + dialog
 ```
 
+## QR motion
+
+Four things move, none of them running at rest:
+
+- **Assemble.** On load the tile's modules sweep in diagonally, scaling up from
+  0.2 over 420ms with a 260ms spread. Mount-only — it retires itself after
+  playing, otherwise a module switched on by a refresh would replay the
+  assemble instead of taking the transition below. The card's QR deliberately
+  has no assemble: it is carried in by the shared-element transition and must
+  not rebuild underneath it.
+- **Two-phase refresh.** What is leaving clears out first and what is arriving
+  lands behind it, each rippling from the centre — a regeneration rather than a
+  crossfade. The delay is keyed off the module's *new* state, so no
+  previous-pattern bookkeeping is needed: a module that doesn't change state has
+  no visible transition whatever its delay. This now runs on the home tile too,
+  which previously swapped with no animation at all.
+- **Specular sweep.** One radial gradient spans the whole grid in user space, so
+  every module samples the same light and moving its centre is two attribute
+  writes per frame rather than 64 recalculations. The highlight travels against
+  the tilt the way a reflection does on foil. Driven by the same gated tilt
+  engine, so it costs nothing when the card is still.
+- **Credential.** The token fades and lifts as it regenerates.
+
 ## The QR is a visual prototype
 
 It encodes nothing and is not scannable. The field is QR-*inspired*: three 2×2

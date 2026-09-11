@@ -132,7 +132,7 @@ export function PassCard({
           className="mx-auto"
           style={{ width: CARD_QR_SIZE, height: CARD_QR_SIZE }}
         >
-          <QRGrid pattern={pattern} />
+          <QRGrid pattern={pattern} engine={engine} />
         </div>
       </div>
 

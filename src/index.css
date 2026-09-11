@@ -271,3 +271,17 @@ body,
     transform: none;
   }
 }
+
+/* The pass assembling itself, swept diagonally across the grid. Runs once,
+   on the tile only — the card's QR is carried in by the shared-element
+   transition and must not rebuild under it. */
+@keyframes module-build {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

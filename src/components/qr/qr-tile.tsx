@@ -42,7 +42,7 @@ export const QRTile = React.forwardRef<HTMLButtonElement, QRTileProps>(
           opacity: qrHidden ? 0 : 1,
         }}
       >
-        <QRGrid pattern={pattern} animate={false} ghost={false} />
+        <QRGrid pattern={pattern} ghost={false} build />
       </div>
     </button>
   ),
