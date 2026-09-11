@@ -1,8 +1,8 @@
 /**
  * QR pattern model.
  *
- * The screen currently renders a *visual prototype*: an 8x8 field of circular
- * modules that is QR-inspired but carries no payload and is not scannable.
+ * The screen renders a *visual prototype*: a field of circular modules that is
+ * QR-inspired but carries no payload and is not scannable.
  *
  * Everything downstream (QRGrid, QRTile, the modal, the refresh transition)
  * consumes the `PassPattern` shape below and nothing else. Swapping in real
@@ -19,11 +19,20 @@
  *     },
  *   };
  *
- * The renderer already draws an arbitrary `size`, so a 21x21 version-1 symbol
- * drops straight in. Only `GRID_SIZE` below is prototype-specific.
+ * The renderer already draws an arbitrary `size`, so a real symbol drops
+ * straight in. Only `GRID_SIZE` below is prototype-specific — and at 32 it
+ * sits between a real version 3 (29) and version 4 (33), which is why the
+ * function patterns here follow the real layout rather than being decorative.
  */
 
-export const GRID_SIZE = 8;
+export const GRID_SIZE = 32;
+
+/** Side of a finder pattern, in modules. Same as a real symbol. */
+const FINDER = 7;
+/** Side of the alignment pattern. */
+const ALIGNMENT = 5;
+/** Row and column carrying the timing pattern, as in a real symbol. */
+const TIMING = 6;
 
 export interface PassPattern {
   /** Modules per side. */
@@ -65,68 +74,109 @@ function makeToken(rand: () => number) {
   return `${block(4)}-${block(4)}`;
 }
 
-/**
- * Anchors sit in three corners the way a real symbol's finder patterns do —
- * 2x2 at this scale — which is what makes the field read as "QR" at a glance.
- * The fourth corner is deliberately left open so the mark stays asymmetric.
- */
-const ANCHORS: ReadonlyArray<readonly [number, number]> = [
-  [0, 0],
-  [0, GRID_SIZE - 2],
-  [GRID_SIZE - 2, 0],
-];
-
-function isAnchor(row: number, col: number) {
-  return ANCHORS.some(
-    ([r, c]) => row >= r && row < r + 2 && col >= c && col < c + 2,
-  );
+/** Top-left corner of each finder. */
+function finderOrigins(size: number): ReadonlyArray<readonly [number, number]> {
+  return [
+    [0, 0],
+    [0, size - FINDER],
+    [size - FINDER, 0],
+  ];
 }
 
 /**
- * A real symbol keeps a one-module quiet band around every finder. Reserving
- * the same band here stops the random body from growing into the anchors,
- * which is what lets them stay legible as anchors at 88px.
+ * Concentric square ring: solid outer ring, one clear ring, solid core. This is
+ * what a real finder looks like, and drawn in circles it reads as a ring of
+ * dots around a dot — the detail that makes the field legible as a code rather
+ * than as noise.
  */
-function isSeparator(row: number, col: number) {
-  if (isAnchor(row, col)) return false;
-  return ANCHORS.some(
-    ([r, c]) =>
-      row >= r - 1 && row <= r + 2 && col >= c - 1 && col <= c + 2,
-  );
+function concentric(row: number, col: number, side: number) {
+  const edge = side - 1;
+  const onOuter = row === 0 || col === 0 || row === edge || col === edge;
+  // The clear ring is always exactly one module wide, so the core is inset by
+  // two on every side: 3x3 inside a 7 finder, a single module inside a 5
+  // alignment block.
+  const inCore = row >= 2 && row <= edge - 2 && col >= 2 && col <= edge - 2;
+  return onOuter || inCore;
 }
 
-/**
- * Prototype provider. Produces a balanced, legible field:
- * fixed corner anchors, an alignment accent near the open corner, and a
- * pseudo-random body held to ~46-56% density so it never reads as noise
- * or as a solid block.
- */
-export const prototypeProvider: PatternProvider = {
-  id: "prototype-8x8",
-  create(seed: number): PassPattern {
-    const rand = mulberry32(seed);
-    const total = GRID_SIZE * GRID_SIZE;
-    const modules = new Array<boolean>(total).fill(false);
+type Reserved = Uint8Array;
 
-    const free: number[] = [];
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
-        const index = row * GRID_SIZE + col;
-        if (isAnchor(row, col)) {
-          modules[index] = true;
-        } else if (!isSeparator(row, col)) {
-          free.push(index);
-        }
+const FREE = 0;
+const SET = 1;
+const BLANK = 2;
+
+/**
+ * Lays down everything that is structural rather than data: finders, their
+ * quiet separators, the timing runs and the alignment block. The body is only
+ * allowed into whatever is left, so the structure always survives a refresh.
+ */
+function layFunctionPatterns(size: number): Reserved {
+  const cells: Reserved = new Uint8Array(size * size);
+  const at = (row: number, col: number) => row * size + col;
+
+  for (const [originRow, originCol] of finderOrigins(size)) {
+    // Separator: a one-module quiet band around the finder.
+    for (let row = originRow - 1; row <= originRow + FINDER; row++) {
+      for (let col = originCol - 1; col <= originCol + FINDER; col++) {
+        if (row < 0 || col < 0 || row >= size || col >= size) continue;
+        cells[at(row, col)] = BLANK;
       }
     }
+    for (let row = 0; row < FINDER; row++) {
+      for (let col = 0; col < FINDER; col++) {
+        cells[at(originRow + row, originCol + col)] = concentric(
+          row,
+          col,
+          FINDER,
+        )
+          ? SET
+          : BLANK;
+      }
+    }
+  }
 
-    // Alignment accent in the open corner: one module, inset by one.
-    const accent = (GRID_SIZE - 2) * GRID_SIZE + (GRID_SIZE - 2);
-    modules[accent] = true;
+  // Timing: alternating modules running between the finders.
+  for (let i = FINDER + 1; i < size - FINDER - 1; i++) {
+    const on = i % 2 === 0;
+    cells[at(TIMING, i)] = on ? SET : BLANK;
+    cells[at(i, TIMING)] = on ? SET : BLANK;
+  }
 
-    // Density is measured against the cells actually available to the body,
-    // so the field never collapses to sparse or reads as a solid block.
-    let remaining = Math.round(free.length * (0.44 + rand() * 0.14));
+  // Alignment block, positioned as a real symbol places its last one.
+  const centre = size - FINDER;
+  const half = (ALIGNMENT - 1) / 2;
+  for (let row = 0; row < ALIGNMENT; row++) {
+    for (let col = 0; col < ALIGNMENT; col++) {
+      const r = centre - half + row;
+      const c = centre - half + col;
+      if (r < 0 || c < 0 || r >= size || c >= size) continue;
+      cells[at(r, c)] = concentric(row, col, ALIGNMENT) ? SET : BLANK;
+    }
+  }
+
+  return cells;
+}
+
+/**
+ * Prototype provider. Real function patterns, pseudo-random body.
+ */
+export const prototypeProvider: PatternProvider = {
+  id: `prototype-${GRID_SIZE}x${GRID_SIZE}`,
+  create(seed: number): PassPattern {
+    const size = GRID_SIZE;
+    const rand = mulberry32(seed);
+    const cells = layFunctionPatterns(size);
+
+    const modules = new Array<boolean>(size * size).fill(false);
+    const free: number[] = [];
+    for (let i = 0; i < cells.length; i++) {
+      if (cells[i] === SET) modules[i] = true;
+      else if (cells[i] === FREE) free.push(i);
+    }
+
+    // Density is measured against the cells actually available to the body, so
+    // the field never collapses to sparse or reads as a solid block.
+    let remaining = Math.round(free.length * (0.44 + rand() * 0.1));
 
     // Fisher-Yates over the free cells, then take the first `remaining`.
     for (let i = free.length - 1; i > 0; i--) {
@@ -135,13 +185,12 @@ export const prototypeProvider: PatternProvider = {
     }
     for (const index of free) {
       if (remaining <= 0) break;
-      if (modules[index]) continue;
       modules[index] = true;
       remaining--;
     }
 
     return {
-      size: GRID_SIZE,
+      size,
       modules,
       token: makeToken(rand),
       id: `${seed}`,

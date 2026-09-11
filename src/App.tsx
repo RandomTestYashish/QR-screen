@@ -7,6 +7,9 @@ import { useTheme } from "@/hooks/use-theme";
 import { createPattern } from "@/lib/pattern";
 import { TiltEngine } from "@/lib/tilt";
 
+/** How long a credential stands before it rotates itself. */
+const ROTATE_MS = 20_000;
+
 export default function App() {
   const { theme, toggle } = useTheme();
   const [pattern, setPattern] = React.useState(() => createPattern());
@@ -17,7 +20,36 @@ export default function App() {
   const tileQrRef = React.useRef<HTMLDivElement>(null);
   const tileRef = React.useRef<HTMLButtonElement>(null);
 
-  const refresh = React.useCallback(() => setPattern(createPattern()), []);
+  // Bumping the cycle restarts the rotation effect, so a manual refresh
+  // resets the clock instead of being followed moments later by an automatic
+  // one.
+  const [cycle, setCycle] = React.useState(0);
+  const refresh = React.useCallback(() => {
+    setPattern(createPattern());
+    setCycle((c) => c + 1);
+  }, []);
+
+  React.useEffect(() => {
+    let timer = 0;
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = 0;
+    };
+    const start = () => {
+      stop();
+      timer = window.setInterval(() => setPattern(createPattern()), ROTATE_MS);
+    };
+    // A hidden tab shouldn't burn cycles, and shouldn't bank up a burst of
+    // rotations to replay the moment it comes back.
+    const onVisibility = () => (document.hidden ? stop() : start());
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [cycle]);
 
   const handleOpen = React.useCallback(() => {
     // Must ride the tap itself: iOS only grants the motion sensor from inside

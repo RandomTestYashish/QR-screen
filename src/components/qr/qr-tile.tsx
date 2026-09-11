@@ -39,7 +39,12 @@ export const QRTile = React.forwardRef<HTMLButtonElement, QRTileProps>(
         style={{
           width: TILE_QR_SIZE,
           height: TILE_QR_SIZE,
+          // `visibility`, not just opacity: an opacity-0 grid still paints, so
+          // while the card stands in for the tile both copies were painting
+          // and transitioning every module. Visibility keeps the box
+          // measurable for the FLIP while taking it out of paint entirely.
           opacity: qrHidden ? 0 : 1,
+          visibility: qrHidden ? "hidden" : "visible",
         }}
       >
         <QRGrid pattern={pattern} ghost={false} build />

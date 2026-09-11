@@ -32,35 +32,56 @@ src/
     ui/             shadcn/ui button + dialog
 ```
 
+## Bands, not modules
+
+A 32x32 symbol is 1024 modules. Giving each one an SVG element was the obvious
+build and the wrong one: it cost ~200ms of dead time between tapping the tile
+and the card starting to grow, and ~130ms of style recalculation on every
+refresh.
+
+The modules are bucketed into six radial bands instead, and a band is the unit
+of both geometry and animation. Each band is three `<path>` elements — the
+modules staying put, the ones leaving, the ones arriving — so the whole field
+is **eighteen nodes at any size**. An unchanged module is never re-animated and
+never double-drawn: it sits in the `keep` layer at full opacity while the other
+two carry the exchange.
+
+Measured at 32x32, before and after: tap-to-growth 215ms -> ~49ms, worst frame
+during a refresh 138ms -> 19ms, worst frame during a tilt sweep 83ms -> 35ms.
+
+(An earlier attempt kept the card's DOM mounted between openings to dodge the
+mount cost. It worked — 9ms — but Radix's modal semantics are mount-scoped, so
+the home screen stayed permanently `aria-hidden`, focus never entered the
+dialog and Tab escaped it. Reverted; the fix belongs in the node count.)
+
 ## QR motion
 
 Four things move, none of them running at rest:
 
-- **Assemble.** On load the tile's modules sweep in diagonally, scaling up from
-  0.2 over 420ms with a 260ms spread. Mount-only — it retires itself after
-  playing, otherwise a module switched on by a refresh would replay the
-  assemble instead of taking the transition below. The card's QR deliberately
-  has no assemble: it is carried in by the shared-element transition and must
-  not rebuild underneath it.
+- **Assemble.** On first paint the tile's bands bloom outward from the centre
+  over ~600ms. The card's QR deliberately has no assemble: it is carried in by
+  the shared-element transition and must land whole on the frame the growth
+  starts, or it would visibly fill in underneath it.
 - **Two-phase refresh.** What is leaving clears out first and what is arriving
   lands behind it, each rippling from the centre — a regeneration rather than a
-  crossfade. The delay is keyed off the module's *new* state, so no
-  previous-pattern bookkeeping is needed: a module that doesn't change state has
-  no visible transition whatever its delay. This now runs on the home tile too,
-  which previously swapped with no animation at all.
+  crossfade. This runs on the home tile too, which previously swapped with no
+  animation at all.
 - **Specular sweep.** One radial gradient spans the whole grid in user space, so
   every module samples the same light and moving its centre is two attribute
   writes per frame rather than 64 recalculations. The highlight travels against
   the tilt the way a reflection does on foil. Driven by the same gated tilt
   engine, so it costs nothing when the card is still.
 - **Ambient breath.** A slow swell travels out from the centre while nothing
-  else is happening. Deliberately not one animation per module: the modules are
-  bucketed into six radial bands and the *band* is animated, so this costs six
-  composited opacity animations rather than sixty-four, and the phase offset
-  between bands is what makes it read as a swell rather than the code blinking
-  as one block. The trough is shallow (0.94) because it multiplies with the
-  specular falloff — both dim, and stacked too deep they wash the modules out.
+  else is happening — six composited opacity animations, one per band, phase
+  offset so it reads as a swell rather than the code blinking as one block.
+  The trough is shallow (0.94) because it multiplies with the specular falloff;
+  both dim, and stacked too deep they wash the modules out.
 - **Credential.** The token fades and lifts as it regenerates.
+
+The pass **rotates itself every 20 seconds**, the way a real single-use
+credential would. A manual refresh resets the clock rather than being followed
+moments later by an automatic one, and rotation pauses while the tab is hidden
+so it neither burns cycles nor banks up a burst to replay on return.
 
 ## The QR is a visual prototype
 

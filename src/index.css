@@ -272,20 +272,6 @@ body,
   }
 }
 
-/* The pass assembling itself, swept diagonally across the grid. Runs once,
-   on the tile only — the card's QR is carried in by the shared-element
-   transition and must not rebuild under it. */
-@keyframes module-build {
-  from {
-    opacity: 0;
-    transform: scale(0.2);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 /* Ambient breath. Low amplitude and a long period on purpose: this is meant
    to register as the credential being live, not as the code sparkling.
    The trough is shallow because this multiplies with the specular falloff —
