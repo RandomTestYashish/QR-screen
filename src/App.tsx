@@ -1,7 +1,6 @@
 import * as React from "react";
 import { QRTile } from "@/components/qr/qr-tile";
 import { QRModal } from "@/components/qr-modal";
-import { RefreshAction } from "@/components/refresh-action";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/hooks/use-theme";
 import { createPattern } from "@/lib/pattern";
@@ -68,22 +67,14 @@ export default function App() {
         </div>
 
         <div className="absolute inset-0 grid place-items-center">
-          {/* This wrapper is exactly the tile's box, so the QR sits on the
-              true centre of the screen and the refresh control hangs off it
-              without pulling it off-centre. */}
-          <div className="relative">
-            <QRTile
-              ref={tileRef}
-              pattern={pattern}
-              theme={theme}
-              qrRef={tileQrRef}
-              qrHidden={sharedActive}
-              onOpen={handleOpen}
-            />
-            <div className="absolute left-1/2 top-full mt-6 -translate-x-1/2">
-              <RefreshAction onRefresh={refresh} compact />
-            </div>
-          </div>
+          <QRTile
+            ref={tileRef}
+            pattern={pattern}
+            theme={theme}
+            qrRef={tileQrRef}
+            qrHidden={sharedActive}
+            onOpen={handleOpen}
+          />
         </div>
       </main>
 

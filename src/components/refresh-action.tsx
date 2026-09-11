@@ -5,8 +5,6 @@ import { cn } from "@/lib/utils";
 
 interface RefreshActionProps {
   onRefresh: () => void;
-  /** Icon only, no label — for the bare home screen. */
-  compact?: boolean;
   className?: string;
 }
 
@@ -18,7 +16,7 @@ interface RefreshActionProps {
 export const RefreshAction = React.forwardRef<
   HTMLButtonElement,
   RefreshActionProps
->(({ onRefresh, compact = false, className }, ref) => {
+>(({ onRefresh, className }, ref) => {
   const [turns, setTurns] = React.useState(0);
 
   const handleClick = React.useCallback(() => {
@@ -30,10 +28,10 @@ export const RefreshAction = React.forwardRef<
     <Button
       ref={ref}
       variant="ghost"
-      size={compact ? "icon" : "md"}
+      size="md"
       onClick={handleClick}
       aria-label="Refresh QR code"
-      className={cn(compact ? "hover:bg-chip" : "gap-2 px-4 -mx-4", className)}
+      className={cn("gap-2 px-4 -mx-4", className)}
     >
       <RefreshCw
         aria-hidden="true"
@@ -43,11 +41,9 @@ export const RefreshAction = React.forwardRef<
           transition: "transform 560ms var(--ease-pass)",
         }}
       />
-      {!compact && (
-        <span className="text-[13px] font-medium tracking-[-0.01em]">
-          Refresh QR Code
-        </span>
-      )}
+      <span className="text-[13px] font-medium tracking-[-0.01em]">
+        Refresh QR Code
+      </span>
     </Button>
   );
 });
