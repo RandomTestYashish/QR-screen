@@ -11,10 +11,19 @@
  * touches layout.
  */
 
-export const EASE_PASS = "cubic-bezier(0.2, 0, 0, 1)";
-export const OPEN_DURATION = 560;
-export const CLOSE_DURATION = 440;
-const REDUCED_DURATION = 160;
+/**
+ * A balanced S-curve. Deliberately not one of the heavily front-loaded
+ * "expressive" curves: those spend the back half of the duration covering the
+ * last few percent of the distance, which the eye reads as the card sticking
+ * on the way in rather than as a long elegant settle.
+ */
+export const EASE_PASS = "cubic-bezier(0.4, 0, 0.2, 1)";
+export const OPEN_DURATION = 520;
+/** Leaving is always quicker than arriving — the card is already understood. */
+export const CLOSE_DURATION = 320;
+const REDUCED_DURATION = 140;
+/** How long a live tilt takes to flatten out as the card leaves. */
+const TILT_RELEASE = 240;
 
 /** Radius of the compact tile, matched at the start of the growth. */
 const TILE_RADIUS = 24;
@@ -41,13 +50,44 @@ interface Geometry {
 }
 
 /**
+ * Everything the close transition needs to start from wherever the card
+ * actually is right now, rather than from where a finished open would have
+ * left it. Without this, closing mid-open snaps the card out to full size for
+ * a frame before it starts shrinking.
+ */
+interface Snapshot {
+  flip: string;
+  backdropOpacity: string;
+  backdropRadius: string;
+  overlayOpacity: string;
+  sections: Array<{ opacity: string; transform: string }>;
+  tilt: string[];
+}
+
+function snapshot(targets: FlipTargets): Snapshot {
+  const read = (el: HTMLElement) => getComputedStyle(el);
+  const backdrop = read(targets.backdrop);
+  return {
+    flip: read(targets.flip).transform,
+    backdropOpacity: backdrop.opacity,
+    backdropRadius: backdrop.borderRadius,
+    overlayOpacity: read(targets.overlay).opacity,
+    sections: targets.sections.map((section) => {
+      const style = read(section);
+      return { opacity: style.opacity, transform: style.transform };
+    }),
+    tilt: targets.tiltNodes.map((node) => read(node).transform),
+  };
+}
+
+/**
  * Put the card back into its resting layout before measuring. A half-finished
  * transition or a live tilt rotation would otherwise poison the geometry,
  * since both affect the descendant QR's client rect.
  */
 function reset(targets: FlipTargets) {
   const { flip, backdrop, overlay, sections, tiltNodes } = targets;
-  for (const node of [flip, backdrop, overlay, ...sections]) {
+  for (const node of [flip, backdrop, overlay, ...sections, ...tiltNodes]) {
     for (const animation of node.getAnimations()) animation.cancel();
   }
   flip.style.transform = "";
@@ -91,15 +131,25 @@ function play(
   });
 }
 
-/**
- * Waits for every animation to settle, commits whatever the resting state
- * should be, then releases the held values. Anything whose rest state differs
- * from its declared CSS — the overlay starts at opacity 0 inline — has to be
- * committed here, or cancelling would snap it back to the entry state.
- */
-async function settle(animations: Animation[], commit?: () => void) {
+interface SettleOptions {
+  /** Resting state that differs from the element's declared CSS. */
+  commit?: () => void;
+  /**
+   * Whether to drop the animations' held values once they finish. Only safe
+   * when the resting state matches the declared CSS — on the way out it does
+   * not, and releasing would flash the fully open card for however many frames
+   * it takes React to unmount the tree.
+   */
+  release?: boolean;
+}
+
+async function settle(
+  animations: Animation[],
+  { commit, release = true }: SettleOptions = {},
+) {
   await Promise.allSettled(animations.map((a) => a.finished));
   commit?.();
+  if (!release) return;
   for (const animation of animations) {
     if (animation.playState !== "idle") animation.cancel();
   }
@@ -114,7 +164,7 @@ export function animateOpen(
 
   reset(targets);
 
-  const settled = () => {
+  const commit = () => {
     overlay.style.opacity = "1";
   };
 
@@ -128,7 +178,7 @@ export function animateOpen(
           duration: REDUCED_DURATION,
         }),
       ],
-      settled,
+      { commit },
     );
   }
 
@@ -136,12 +186,10 @@ export function animateOpen(
   const startRadius = TILE_RADIUS / geometry.scale;
 
   const animations = [
-    play(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 }),
-    play(
-      flip,
-      [{ transform: transformOf(geometry) }, { transform: "none" }],
-      { duration: OPEN_DURATION },
-    ),
+    play(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }),
+    play(flip, [{ transform: transformOf(geometry) }, { transform: "none" }], {
+      duration: OPEN_DURATION,
+    }),
     play(
       backdrop,
       [
@@ -158,12 +206,12 @@ export function animateOpen(
           { opacity: 0, transform: "translateY(10px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 360, delay: 140 + index * 40 },
+        { duration: 300, delay: 110 + index * 34 },
       ),
     ),
   ];
 
-  return settle(animations, settled);
+  return settle(animations, { commit });
 }
 
 export function animateClose(
@@ -171,55 +219,75 @@ export function animateClose(
   sourceRect: DOMRect,
   reducedMotion: boolean,
 ): Promise<void> {
-  const { flip, backdrop, qr, overlay, sections } = targets;
+  const { flip, backdrop, qr, overlay, sections, tiltNodes } = targets;
 
+  // Read where the card is before reset() erases it.
+  const from = snapshot(targets);
   reset(targets);
 
   if (reducedMotion) {
-    return settle([
-      play(overlay, [{ opacity: 1 }, { opacity: 0 }], {
-        duration: REDUCED_DURATION,
-      }),
-      play(flip, [{ opacity: 1 }, { opacity: 0 }], {
-        duration: REDUCED_DURATION,
-      }),
-    ]);
+    return settle(
+      [
+        play(overlay, [{ opacity: from.overlayOpacity }, { opacity: 0 }], {
+          duration: REDUCED_DURATION,
+        }),
+        play(flip, [{ opacity: 1 }, { opacity: 0 }], {
+          duration: REDUCED_DURATION,
+        }),
+      ],
+      { release: false },
+    );
   }
 
   const geometry = solve(flip, qr, sourceRect);
   const endRadius = TILE_RADIUS / geometry.scale;
 
   const animations = [
-    play(overlay, [{ opacity: 1 }, { opacity: 0 }], {
+    play(overlay, [{ opacity: from.overlayOpacity }, { opacity: 0 }], {
       duration: CLOSE_DURATION,
     }),
     play(
       flip,
-      [{ transform: "none" }, { transform: transformOf(geometry) }],
+      [{ transform: from.flip }, { transform: transformOf(geometry) }],
       { duration: CLOSE_DURATION },
     ),
     play(
       backdrop,
       [
-        { opacity: 1, borderRadius: `${CARD_RADIUS}px` },
-        { opacity: 1, borderRadius: `${CARD_RADIUS}px`, offset: 0.4 },
+        { opacity: from.backdropOpacity, borderRadius: from.backdropRadius },
+        {
+          opacity: from.backdropOpacity,
+          borderRadius: from.backdropRadius,
+          offset: 0.4,
+        },
         { opacity: 0, borderRadius: `${endRadius.toFixed(1)}px` },
       ],
       { duration: CLOSE_DURATION },
     ),
     // Content leaves first and fast, so the card is a clean surface by the
     // time it has shrunk back into the tile.
-    ...sections.map((section) =>
+    ...sections.map((section, index) =>
       play(
         section,
         [
-          { opacity: 1, transform: "none" },
+          { opacity: from.sections[index].opacity, transform: from.sections[index].transform },
           { opacity: 0, transform: "translateY(6px)" },
         ],
-        { duration: 180 },
+        { duration: 150 },
       ),
+    ),
+    // Ease any live tilt back to flat instead of letting the engine's stop
+    // snap it, which pops the card square in a single frame.
+    ...tiltNodes.flatMap((node, index) =>
+      from.tilt[index] && from.tilt[index] !== "none"
+        ? [
+            play(node, [{ transform: from.tilt[index] }, { transform: "none" }], {
+              duration: TILT_RELEASE,
+            }),
+          ]
+        : [],
     ),
   ];
 
-  return settle(animations);
+  return settle(animations, { release: false });
 }

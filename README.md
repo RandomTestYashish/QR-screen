@@ -59,8 +59,19 @@ w=88`, against a tile QR of `x=48, y=372.94, w=88`.
 
 Around that, the card surface fades up and its radius opens from the tile's 24px
 (pre-divided by the scale, so it *reads* as 24px throughout), and the header,
-details and refresh row settle in on a 40ms stagger. 560ms out, 440ms back, on
-`cubic-bezier(0.2, 0, 0, 1)` — monotonic, no overshoot.
+details and refresh row settle in on a 34ms stagger. 520ms out, 320ms back, on
+`cubic-bezier(0.4, 0, 0.2, 1)` — a balanced S-curve rather than one of the
+heavily front-loaded "expressive" ones, which spend the back half of the
+duration covering the last few percent of the distance and read as the card
+sticking on the way in.
+
+Closing starts from a **snapshot** of where the card actually is, not from where
+a finished open would have left it, so interrupting the growth reverses from
+that exact point instead of snapping out to full size first. The animations are
+also held rather than released when the close ends — their resting state is not
+the declared CSS, so dropping them would flash the fully open card for however
+many frames React needs to unmount. A live tilt eases back to flat over 240ms
+instead of being snapped square by the engine stopping.
 
 Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
 
