@@ -13,16 +13,23 @@ interface HalftoneFieldProps {
  */
 const FIELD_OPACITY = 0.2;
 
-/** Grid pitch in CSS px, and the ceiling that keeps the count sane. */
-const PITCH = 9;
-const MAX_DOTS = 4400;
+/**
+ * Grid pitch in CSS px, and the ceiling that keeps the count sane.
+ * Everything below is expressed as a fraction of the pitch, so the texture
+ * keeps its proportions whatever the pitch is set to — a finer grid gets
+ * proportionally finer dots and travel rather than a different look.
+ */
+const PITCH = 6;
+const MAX_DOTS = 9600;
 
-/** Dot radius in CSS px, floor to peak. */
-const MIN_R = 0.42;
-const MAX_R = 2.45;
+/** Dot radius, floor to peak. */
+const MIN_R = PITCH * 0.05;
+const MAX_R = PITCH * 0.27;
 
-/** How far a dot may wander from its cell, in CSS px. */
-const DRIFT = 3.2;
+/** How far a dot may wander from its cell. */
+const DRIFT = PITCH * 0.36;
+/** Extra travel toward a ridge, on top of the drift. */
+const PULL = PITCH * 0.38;
 
 /**
  * Alpha is quantised into this many levels so the whole field draws in a
@@ -214,8 +221,8 @@ export function HalftoneField({ theme }: HalftoneFieldProps) {
           // Ridges pull their dots together, which is what makes the grid look
           // draped over something rather than ruled.
           const x =
-            bx + Math.sin(v * 7 + seconds * 0.21) * DRIFT + n * pull * 3.4;
-          const y = by + wobbleY + n * pull * 3.4;
+            bx + Math.sin(v * 7 + seconds * 0.21) * DRIFT + n * pull * PULL;
+          const y = by + wobbleY + n * pull * PULL;
 
           const level =
             alpha <= floor
@@ -242,11 +249,23 @@ export function HalftoneField({ theme }: HalftoneFieldProps) {
         ctx.fillStyle = `rgba(${dot},${alpha.toFixed(3)})`;
         ctx.beginPath();
         const store = xs[level];
-        for (let d = 0; d < n; d++) {
-          const i = d * 3;
-          const r = store[i + 2];
-          ctx.moveTo(store[i] + r, store[i + 1]);
-          ctx.arc(store[i], store[i + 1], r, 0, Math.PI * 2);
+        if (level === 0) {
+          // The floor is the bulk of the field and lands under a device pixel
+          // across, where a square and a circle rasterise to the same blob.
+          // rect() skips the arc tessellation, which is most of the draw cost
+          // once the grid is this fine.
+          for (let d = 0; d < n; d++) {
+            const i = d * 3;
+            const r = store[i + 2];
+            ctx.rect(store[i] - r, store[i + 1] - r, r + r, r + r);
+          }
+        } else {
+          for (let d = 0; d < n; d++) {
+            const i = d * 3;
+            const r = store[i + 2];
+            ctx.moveTo(store[i] + r, store[i + 1]);
+            ctx.arc(store[i], store[i + 1], r, 0, Math.PI * 2);
+          }
         }
         ctx.fill();
       }

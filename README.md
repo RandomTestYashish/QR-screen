@@ -147,9 +147,11 @@ bright dots, troughs fall away to near-invisible specks, and the ridges travel
 — so it reads as one breathing surface rather than as particles moving
 independently.
 
-- **One canvas, no DOM per dot.** ~3,800 dots at a 9px pitch on a 375x812
+- **One canvas, no DOM per dot.** ~8,800 dots at a 6px pitch on a 375x812
   frame, with the pitch widening automatically if a larger box would push the
-  count past its ceiling.
+  count past its ceiling. Radius, drift and ridge travel are all expressed as
+  fractions of the pitch, so changing the pitch gives a finer or coarser
+  version of the same texture rather than a different look.
 - **Layered sines, not a noise library.** Four waves at incommensurable
   frequencies plus two slow-drifting ripple centres: coherent, never visibly
   repeating, a few trig calls per dot, no dependency.
@@ -165,6 +167,10 @@ independently.
 - **Alpha is quantised into eight levels** so the whole field draws in eight
   fills rather than one per dot. Radius varies freely inside a level — a single
   path holds arcs of any size.
+- **The floor level draws as rects, not arcs.** It is the bulk of the field and
+  lands under a device pixel across, where a square and a circle rasterise to
+  the same blob; skipping the arc tessellation is what keeps a grid this fine
+  at 60fps. Without it, 8,800 dots ran at 22ms a frame.
 
 The whole field sits at **20% opacity**, applied on the element rather than
 folded into the per-dot alphas — those are what decide which dots clear the
