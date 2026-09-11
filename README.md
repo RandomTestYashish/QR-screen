@@ -141,45 +141,12 @@ Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
 
 ## The background
 
-An animated halftone field: a grid of dots, each one sized and lit by the
-height of a slowly deforming surface underneath it. Ridges bloom into large
-bright dots, troughs fall away to near-invisible specks, and the ridges travel
-— so it reads as one breathing surface rather than as particles moving
-independently.
+A flat fill — `#050507` in dark, `#f2f1ed` in light — and nothing else. No
+gradient, no texture, nothing animating behind the pass.
 
-- **One canvas, no DOM per dot.** ~8,800 dots at a 6px pitch on a 375x812
-  frame, with the pitch widening automatically if a larger box would push the
-  count past its ceiling. Radius, drift and ridge travel are all expressed as
-  fractions of the pitch, so changing the pitch gives a finer or coarser
-  version of the same texture rather than a different look.
-- **Layered sines, not a noise library.** Four waves at incommensurable
-  frequencies plus two slow-drifting ripple centres: coherent, never visibly
-  repeating, a few trig calls per dot, no dependency.
-- **Both axes are measured in *widths*.** Normalising each axis by its own
-  dimension squashes every wave into horizontal banding on a 375x812 frame —
-  the waves have to be round before they can flow.
-- **A low-frequency swell** tilts whole regions closer to or further from the
-  viewer, which is what gives the field depth rather than evenly scattered
-  sparkle.
-- **A soft centre falloff** keeps the middle calm. It does double duty: the
-  reference keeps large dark areas of its own, and the pass sits in the centre
-  and has to stay legible.
-- **Alpha is quantised into eight levels** so the whole field draws in eight
-  fills rather than one per dot. Radius varies freely inside a level — a single
-  path holds arcs of any size.
-- **The floor level draws as rects, not arcs.** It is the bulk of the field and
-  lands under a device pixel across, where a square and a circle rasterise to
-  the same blob; skipping the arc tessellation is what keeps a grid this fine
-  at 60fps. Without it, 8,800 dots ran at 22ms a frame.
-
-The whole field sits at **20% opacity**, applied on the element rather than
-folded into the per-dot alphas — those are what decide which dots clear the
-visibility cutoff, so scaling them would thin the texture out instead of just
-dimming it.
-
-Measured at 375x812 with the field running: 16.7ms median frame, 18ms worst.
-It parks itself on a hidden tab, and `prefers-reduced-motion` renders one
-frozen frame rather than a blank screen.
+An animated halftone dot field lived here for a few revisions (canvas, ~8,800
+dots on a deforming sine surface, 60fps). It was removed in favour of the solid
+fill; `git log` has it if it is ever wanted back.
 
 ## Tilt and glitter
 

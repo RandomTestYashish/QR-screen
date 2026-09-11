@@ -43,8 +43,6 @@
 :root,
 [data-theme="dark"] {
   --bg: #050507;
-  --bg-2: #0b0b11;
-  --bg-glow: 218 24% 42%;
 
   --ink: #f7f7f4;
   --ink-2: #9c9ca6;
@@ -70,8 +68,6 @@
 
 [data-theme="light"] {
   --bg: #f2f1ed;
-  --bg-2: #fbfbf9;
-  --bg-glow: 220 30% 70%;
 
   --ink: #0a0a0d;
   --ink-2: #6d6d77;
@@ -100,7 +96,6 @@
     sans-serif;
 
   --color-bg: var(--bg);
-  --color-bg-2: var(--bg-2);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -174,13 +169,7 @@ body,
     height: min(812px, 100dvh);
     overflow: hidden;
     isolation: isolate;
-    background:
-      radial-gradient(
-        120% 68% at 50% -8%,
-        hsl(var(--bg-glow) / 0.16) 0%,
-        transparent 62%
-      ),
-      linear-gradient(176deg, var(--bg-2) 0%, var(--bg) 46%, var(--bg) 100%);
+    background: var(--bg);
     transition:
       background-color 420ms var(--ease-pass),
       box-shadow 420ms var(--ease-pass);
