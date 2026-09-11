@@ -1,10 +1,8 @@
 import * as React from "react";
-import { ShieldCheck } from "lucide-react";
 import { QRTile } from "@/components/qr/qr-tile";
 import { QRModal } from "@/components/qr-modal";
 import { RefreshAction } from "@/components/refresh-action";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { PassMark } from "@/components/pass-mark";
 import { useTheme } from "@/hooks/use-theme";
 import { createPattern } from "@/lib/pattern";
 import { TiltEngine } from "@/lib/tilt";
@@ -30,73 +28,31 @@ export default function App() {
 
   return (
     <div ref={setDevice} className="device">
-      <main className="relative z-10 flex h-full flex-col px-6 pb-6 pt-6">
-        <header className="flex h-10 shrink-0 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PassMark />
-            <span className="eyebrow text-ink-2">Meridian</span>
-          </div>
+      {/* The whole screen is the pass. No wordmark, no headline, no metadata —
+          the only text anywhere is inside the card you open. */}
+      <main className="relative z-10 h-full">
+        <div className="absolute right-6 top-6 z-20">
           <ThemeToggle theme={theme} onToggle={toggle} />
-        </header>
-
-        {/* Optically centred: less air above the hero than below it. */}
-        <div className="min-h-6 flex-[0.85]" />
-
-        <section>
-          <p className="eyebrow text-ink-3">Identity</p>
-          <h1 className="mt-2 text-[34px] font-semibold leading-[38px] tracking-[-0.035em] text-ink">
-            Access{" "}
-            <span className="font-light italic tracking-[-0.02em]">Pass</span>
-          </h1>
-          <p className="mt-2 max-w-[280px] text-[13px] font-light italic leading-5 text-ink-2">
-            One credential, one entry.
-          </p>
-        </section>
-
-        {/* Tile plus a meta spine: 136 + 24 + 167 = the full 327 column.
-            The same two fields reappear inside the card, so opening the pass
-            reads as the information reflowing rather than being replaced. */}
-        <div className="mt-12 flex items-stretch gap-6">
-          <QRTile
-            ref={tileRef}
-            pattern={pattern}
-            theme={theme}
-            qrRef={tileQrRef}
-            qrHidden={sharedActive}
-            onOpen={handleOpen}
-          />
-          <dl className="flex min-w-0 flex-1 flex-col justify-between">
-            <div>
-              <dt className="eyebrow text-ink-3">Tier</dt>
-              <dd className="mt-2 text-[15px] font-semibold leading-5 tracking-[-0.01em] text-ink">
-                Founding Member
-              </dd>
-            </div>
-            <div>
-              <dt className="eyebrow text-ink-3">Credential</dt>
-              <dd
-                key={pattern.id}
-                className="mt-2 text-[15px] font-semibold leading-5 tabular-nums tracking-[0.06em] text-ink [animation:token-in_460ms_var(--ease-pass)]"
-              >
-                {pattern.token}
-              </dd>
-            </div>
-          </dl>
         </div>
 
-        <div className="mt-6">
-          <RefreshAction onRefresh={refresh} />
+        <div className="absolute inset-0 grid place-items-center">
+          {/* This wrapper is exactly the tile's box, so the QR sits on the
+              true centre of the screen and the refresh control hangs off it
+              without pulling it off-centre. */}
+          <div className="relative">
+            <QRTile
+              ref={tileRef}
+              pattern={pattern}
+              theme={theme}
+              qrRef={tileQrRef}
+              qrHidden={sharedActive}
+              onOpen={handleOpen}
+            />
+            <div className="absolute left-1/2 top-full mt-6 -translate-x-1/2">
+              <RefreshAction onRefresh={refresh} compact />
+            </div>
+          </div>
         </div>
-
-        <div className="min-h-12 flex-1" />
-
-        <footer className="flex shrink-0 items-center justify-between border-t border-hairline pt-4">
-          <span className="flex items-center gap-2 text-[12px] font-light text-ink-3">
-            <ShieldCheck aria-hidden="true" className="size-3.5" />
-            Verified device
-          </span>
-          <span className="eyebrow text-ink-3">Visual prototype</span>
-        </footer>
       </main>
 
       <QRModal

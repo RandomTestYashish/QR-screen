@@ -285,3 +285,17 @@ body,
     transform: scale(1);
   }
 }
+
+/* Ambient breath. Low amplitude and a long period on purpose: this is meant
+   to register as the credential being live, not as the code sparkling.
+   The trough is shallow because this multiplies with the specular falloff —
+   both dim, and stacked too deep they wash the modules out. */
+@keyframes module-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.94;
+  }
+}

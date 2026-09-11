@@ -1,11 +1,8 @@
 import * as React from "react";
-import { X } from "lucide-react";
 import { QRGrid } from "@/components/qr/qr-grid";
 import { GlitterSurface } from "@/components/surface/glitter-surface";
 import { RefreshAction } from "@/components/refresh-action";
-import { Button } from "@/components/ui/button";
 import {
-  DialogClose,
   DialogDescription,
   DialogTitle,
   VisuallyHidden,
@@ -31,8 +28,6 @@ export interface PassCardRefs {
   /** The shared element the FLIP is solved from. */
   qr: React.RefObject<HTMLDivElement | null>;
   header: React.RefObject<HTMLDivElement | null>;
-  /** Receives focus when the card opens. */
-  close: React.RefObject<HTMLButtonElement | null>;
   details: React.RefObject<HTMLDivElement | null>;
   footer: React.RefObject<HTMLDivElement | null>;
   /** The two parallax planes. Zeroed before the FLIP measures anything. */
@@ -104,24 +99,10 @@ export function PassCard({
         <GlitterSurface engine={engine} theme={theme} intensity={0.95} />
       </div>
 
-      <div
-        ref={refs.header}
-        className="relative z-10 flex h-6 items-center justify-between"
-      >
+      <div ref={refs.header} className="relative z-10 flex h-6 items-center">
         <DialogTitle asChild>
           <h2 className="eyebrow text-ink-2">Access Pass</h2>
         </DialogTitle>
-        <DialogClose asChild>
-          <Button
-            ref={refs.close}
-            variant="quiet"
-            size="sm"
-            aria-label="Close access pass"
-            className="-mr-2 size-8 px-0"
-          >
-            <X aria-hidden="true" className="size-4" />
-          </Button>
-        </DialogClose>
       </div>
 
       {/* The shared element. It is carried across the transition, so it never
@@ -138,27 +119,17 @@ export function PassCard({
 
       <div ref={farRef} className="relative z-10 will-change-transform">
         <div ref={refs.details}>
-          <div className="mt-8 flex items-center justify-between gap-4">
-            <p className="text-[17px] font-semibold leading-6 tracking-[-0.02em] text-ink">
-              Founding Member
-            </p>
-            <span className="flex h-6 shrink-0 items-center gap-2 rounded-full bg-chip px-2">
-              <span className="size-1.5 rounded-full bg-accent" />
-              <span className="eyebrow text-ink-2">Active</span>
-            </span>
-          </div>
+          <p className="mt-8 text-[17px] font-semibold leading-6 tracking-[-0.02em] text-ink">
+            Founding Member
+          </p>
 
-          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
+          <dl className="mt-4">
             <dt className="eyebrow text-ink-3">Credential</dt>
-            <dt className="eyebrow text-ink-3">Expires</dt>
             <dd
               key={pattern.id}
-              className="text-[15px] font-semibold tabular-nums tracking-[0.08em] text-ink [animation:token-in_460ms_var(--ease-pass)]"
+              className="mt-2 text-[15px] font-semibold tabular-nums tracking-[0.08em] text-ink [animation:token-in_460ms_var(--ease-pass)]"
             >
               {pattern.token}
-            </dd>
-            <dd className="text-[15px] font-semibold tabular-nums tracking-[0.02em] text-ink">
-              23:59 UTC
             </dd>
           </dl>
 
@@ -178,9 +149,8 @@ export function PassCard({
 
       <VisuallyHidden>
         <DialogDescription>
-          Founding member credential {pattern.token}, expiring at 23:59 UTC. The
-          pattern shown is a visual prototype and does not encode a scannable
-          code.
+          Founding member credential {pattern.token}. The pattern shown is a
+          visual prototype and does not encode a scannable code.
         </DialogDescription>
       </VisuallyHidden>
     </div>

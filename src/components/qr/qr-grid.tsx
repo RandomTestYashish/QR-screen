@@ -13,6 +13,8 @@ interface QRGridProps extends React.ComponentPropsWithoutRef<"svg"> {
   build?: boolean;
   /** Drives the specular sweep across the modules. */
   engine?: TiltEngine | null;
+  /** Slow radial breath through the modules while nothing else is happening. */
+  ambient?: boolean;
 }
 
 /** Module radius as a fraction of one cell. */
@@ -36,6 +38,17 @@ const BUILD_DURATION = 420;
 const LIGHT_TRAVEL = 2.4;
 
 /**
+ * Ambient breath. Deliberately not one animation per module: the modules are
+ * bucketed into radial bands and the band is animated, so the whole effect
+ * costs six composited opacity animations rather than sixty-four. The phase
+ * offset between bands is what makes it read as a slow swell travelling out
+ * from the centre instead of the code blinking as one block.
+ */
+const BANDS = 6;
+const BREATH_PERIOD = 4.8;
+const BREATH_OFFSET = 0.34;
+
+/**
  * Renders a PassPattern as a field of circular modules.
  *
  * Every cell is mounted for the life of the component and only its opacity and
@@ -54,6 +67,7 @@ export const QRGrid = React.forwardRef<SVGSVGElement, QRGridProps>(
       animate = true,
       build = false,
       engine = null,
+      ambient = true,
       className,
       ...props
     },
@@ -94,6 +108,7 @@ export const QRGrid = React.forwardRef<SVGSVGElement, QRGridProps>(
             cx: col + 0.5,
             cy: row + 0.5,
             on,
+            band: Math.min(BANDS - 1, Math.floor(radial * BANDS)),
             delay: on
               ? EXIT_SPAN + Math.round(radial * ENTER_SPAN)
               : Math.round(radial * EXIT_SPAN),
@@ -103,6 +118,14 @@ export const QRGrid = React.forwardRef<SVGSVGElement, QRGridProps>(
       }
       return out;
     }, [size, modules]);
+
+    const bands = React.useMemo(
+      () =>
+        Array.from({ length: BANDS }, (_, band) =>
+          cells.filter((cell) => cell.band === band),
+        ),
+      [cells],
+    );
 
     /**
      * Specular sweep. One gradient spans the whole grid in user space, so every
@@ -169,32 +192,50 @@ export const QRGrid = React.forwardRef<SVGSVGElement, QRGridProps>(
         )}
 
         <g fill={`url(#${lightId})`}>
-          {cells.map((cell) => (
-            <circle
-              key={cell.key}
-              cx={cell.cx}
-              cy={cell.cy}
-              r={MODULE_R}
-              opacity={cell.on ? 1 : 0}
-              style={{
-                transformBox: "fill-box",
-                transformOrigin: "center",
-                transform: cell.on ? "scale(1)" : "scale(0.32)",
-                transition: animate
-                  ? cell.on
-                    ? `opacity 240ms var(--ease-pass) ${cell.delay}ms, transform 300ms var(--ease-pass) ${cell.delay}ms`
-                    : `opacity 180ms var(--ease-pass) ${cell.delay}ms, transform 220ms var(--ease-pass) ${cell.delay}ms`
-                  : undefined,
-                // `backwards` only, never `forwards`: the assemble holds its
-                // first frame through the delay and then hands the module back
-                // to the transition above, instead of pinning it forever.
-                animation:
-                  building && cell.on
-                    ? `module-build ${BUILD_DURATION}ms var(--ease-pass) ${cell.buildDelay}ms backwards`
-                    : undefined,
-                willChange: animate ? "transform, opacity" : undefined,
-              }}
-            />
+          {bands.map((band, index) => (
+            <g
+              key={`band-${index}`}
+              style={
+                ambient
+                  ? {
+                      // Negative delay starts each band already part-way
+                      // through, so the swell is staggered from the first
+                      // frame rather than easing in together.
+                      animation: `module-breathe ${BREATH_PERIOD}s ease-in-out ${(
+                        -index * BREATH_OFFSET
+                      ).toFixed(2)}s infinite`,
+                    }
+                  : undefined
+              }
+            >
+              {band.map((cell) => (
+                <circle
+                  key={cell.key}
+                  cx={cell.cx}
+                  cy={cell.cy}
+                  r={MODULE_R}
+                  opacity={cell.on ? 1 : 0}
+                  style={{
+                    transformBox: "fill-box",
+                    transformOrigin: "center",
+                    transform: cell.on ? "scale(1)" : "scale(0.32)",
+                    transition: animate
+                      ? cell.on
+                        ? `opacity 240ms var(--ease-pass) ${cell.delay}ms, transform 300ms var(--ease-pass) ${cell.delay}ms`
+                        : `opacity 180ms var(--ease-pass) ${cell.delay}ms, transform 220ms var(--ease-pass) ${cell.delay}ms`
+                      : undefined,
+                    // `backwards` only, never `forwards`: the assemble holds
+                    // its first frame through the delay and then hands the
+                    // module back to the transition above.
+                    animation:
+                      building && cell.on
+                        ? `module-build ${BUILD_DURATION}ms var(--ease-pass) ${cell.buildDelay}ms backwards`
+                        : undefined,
+                    willChange: animate ? "transform, opacity" : undefined,
+                  }}
+                />
+              ))}
+            </g>
           ))}
         </g>
       </svg>

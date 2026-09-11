@@ -1,5 +1,8 @@
 import * as React from "react";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
+  DialogClose,
   Dialog,
   DialogContent,
   DialogOverlay,
@@ -35,7 +38,6 @@ function useCardRefs(): PassCardRefs {
   const backdrop = React.useRef<HTMLDivElement>(null);
   const qr = React.useRef<HTMLDivElement>(null);
   const header = React.useRef<HTMLDivElement>(null);
-  const close = React.useRef<HTMLButtonElement>(null);
   const details = React.useRef<HTMLDivElement>(null);
   const footer = React.useRef<HTMLDivElement>(null);
   const near = React.useRef<HTMLDivElement>(null);
@@ -43,7 +45,7 @@ function useCardRefs(): PassCardRefs {
   // Refs are stable for the life of the component, so this object can be too —
   // and it has to be, or every render would restart the transition effect.
   return React.useMemo(
-    () => ({ surface, backdrop, qr, header, close, details, footer, near, far }),
+    () => ({ surface, backdrop, qr, header, details, footer, near, far }),
     [],
   );
 }
@@ -64,6 +66,7 @@ export function QRModal({
 
   const flipRef = React.useRef<HTMLDivElement>(null);
   const overlayRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
   const cardRefs = useCardRefs();
 
   // Tilt only comes alive once the card has actually landed, so the growth
@@ -77,6 +80,7 @@ export function QRModal({
     const overlay = overlayRef.current;
     const { surface, backdrop, qr, header, details, footer, near, far } =
       cardRefs;
+    const close = closeRef.current;
     if (!flip || !overlay || !backdrop.current || !qr.current) return null;
     const nonNull = <T,>(el: T | null): el is T => el !== null;
     return {
@@ -84,7 +88,9 @@ export function QRModal({
       overlay,
       backdrop: backdrop.current,
       qr: qr.current,
-      sections: [header.current, details.current, footer.current].filter(
+      // Stagger order. The close control sits outside the card and lands
+      // last, after the content it belongs to has settled.
+      sections: [header.current, details.current, footer.current, close].filter(
         nonNull,
       ),
       tiltNodes: [surface.current, near.current, far.current].filter(nonNull),
@@ -163,7 +169,7 @@ export function QRModal({
               // Focus lands in the card without yanking the viewport around
               // mid-transition.
               event.preventDefault();
-              cardRefs.close.current?.focus({ preventScroll: true });
+              closeRef.current?.focus({ preventScroll: true });
             }}
             onCloseAutoFocus={(event) => {
               // The card is opened programmatically, not through a Radix
@@ -173,21 +179,39 @@ export function QRModal({
               triggerRef.current?.focus({ preventScroll: true });
             }}
           >
+            {/* The card and its dismiss control are siblings, not nested:
+                the close button must hold its place while the card scales, so
+                it cannot live inside the element carrying the FLIP transform.
+                Transforms do not affect layout, so this column stays put. */}
             <div
-              ref={flipRef}
-              className="origin-center will-change-transform"
-              style={{
-                perspective: 1100,
-                pointerEvents: phase === "open" ? "auto" : "none",
-              }}
+              className="flex flex-col items-center gap-6"
+              style={{ pointerEvents: phase === "open" ? "auto" : "none" }}
             >
-              <PassCard
-                pattern={pattern}
-                theme={theme}
-                engine={engine}
-                refs={cardRefs}
-                onRefresh={onRefresh}
-              />
+              <div
+                ref={flipRef}
+                className="origin-center will-change-transform"
+                style={{ perspective: 1100 }}
+              >
+                <PassCard
+                  pattern={pattern}
+                  theme={theme}
+                  engine={engine}
+                  refs={cardRefs}
+                  onRefresh={onRefresh}
+                />
+              </div>
+
+              <DialogClose asChild>
+                <Button
+                  ref={closeRef}
+                  variant="surface"
+                  size="icon"
+                  aria-label="Close access pass"
+                  className="will-change-transform"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </Button>
+              </DialogClose>
             </div>
           </DialogContent>
         </DialogPortal>

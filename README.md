@@ -53,6 +53,13 @@ Four things move, none of them running at rest:
   writes per frame rather than 64 recalculations. The highlight travels against
   the tilt the way a reflection does on foil. Driven by the same gated tilt
   engine, so it costs nothing when the card is still.
+- **Ambient breath.** A slow swell travels out from the centre while nothing
+  else is happening. Deliberately not one animation per module: the modules are
+  bucketed into six radial bands and the *band* is animated, so this costs six
+  composited opacity animations rather than sixty-four, and the phase offset
+  between bands is what makes it read as a swell rather than the code blinking
+  as one block. The trough is shallow (0.94) because it multiplies with the
+  specular falloff — both dim, and stacked too deep they wash the modules out.
 - **Credential.** The token fades and lifts as it regenerates.
 
 ## The QR is a visual prototype
@@ -116,6 +123,18 @@ no sparkle loop — the draw is gated on a tilt delta, so nothing runs at rest.
 The palette is mostly achromatic silver with a minority of restrained steel,
 violet, gold and teal facets. The glitter sits on its own layer behind the QR
 and never touches its contrast.
+
+## Screens
+
+The home screen carries no text at all — no wordmark, no headline, no metadata.
+Just the pass on the exact centre of the screen, a refresh icon hanging below it
+and a theme toggle in the corner. The refresh control is positioned off a
+wrapper sized to the tile, so it cannot pull the QR off centre.
+
+The card's dismiss control sits *outside* the card, centred 24px below it. It
+has to be a sibling of the element carrying the FLIP transform rather than a
+child: it must hold its place while the card scales. Transforms don't affect
+layout, so the column stays put while the card grows out of the tile.
 
 ## Design system
 
