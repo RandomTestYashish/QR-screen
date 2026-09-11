@@ -110,20 +110,20 @@ w=88`, against a tile QR of `x=48, y=372.94, w=88`.
 
 Around that, the card surface fades up and its radius opens from the tile's 24px
 (pre-divided by the scale, so it *reads* as 24px throughout), and the header,
-details and refresh row settle in behind it. **3000ms out, 240ms back** — the
-entrance is a deliberate slow reveal. The scrim fade and the content stagger
-are derived from `OPEN_DURATION` rather than fixed, so they stay choreographed
-with the growth instead of snapping in while the card is still on its way.
+details and refresh row settle in behind it. **440ms out, 240ms back**. The scrim fade and the
+content stagger are derived from `OPEN_DURATION` rather than fixed, so
+retuning the entrance keeps the choreography intact instead of leaving them to
+snap in while the card is still on its way.
 
-Because the entrance is long, the card is interactive from the moment it is on
-screen rather than once it has landed: gating that on "open" would lock the
-dismiss control out for the whole of it. Dismissing mid-growth reverses
-from wherever the card had got to.
+The card is interactive from the moment it is on screen rather than once it has
+landed — there is no reason to lock the dismiss control out for the length of
+the growth. Dismissing mid-growth reverses from wherever the card had got to.
 
 The growth carries an overshoot — `cubic-bezier(0.34, 1.4, 0.64, 1)` — so the
-card runs about 2.5% past its final size and settles back. Note that easing is
-time-normalised: stretched over three seconds the overshoot arrives at ~2.0s and
-drifts back by ~3.0s, which reads as a slow float rather than as a snap. That pop is on the
+card runs about 2.5% past its final size and settles back. Measured: the QR crosses its
+final size at ~205ms, peaks at 221.5 against a 216 final, and settles by
+~435ms. Easing is time-normalised, so this curve only reads as a *pop* at a
+short duration — stretched over seconds it becomes a slow float. That pop is on the
 card's **transform only**; opacity and radius stay on the smooth
 `cubic-bezier(0.4, 0, 0.2, 1)`, since an overshoot there has nothing to
 overshoot into. Closing has no bounce: a shrink that undershoots past the tile

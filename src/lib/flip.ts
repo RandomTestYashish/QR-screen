@@ -27,7 +27,7 @@ export const EASE_PASS = "cubic-bezier(0.4, 0, 0.2, 1)";
  */
 const EASE_POP = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 
-export const OPEN_DURATION = 3000;
+export const OPEN_DURATION = 440;
 /** Leaving is always quicker than arriving — the card is already understood. */
 export const CLOSE_DURATION = 240;
 

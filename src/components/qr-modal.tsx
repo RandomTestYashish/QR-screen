@@ -186,8 +186,8 @@ export function QRModal({
             <div
               className="flex flex-col items-center gap-6"
               // Interactive as soon as it is on screen, not only once it has
-            // landed: at this duration, gating on "open" would lock the close
-            // control out for the whole of the growth.
+            // landed. Gating on "open" would lock the dismiss control out for
+            // the length of the growth, and there is no reason to.
             style={{ pointerEvents: "auto" }}
             >
               <div
