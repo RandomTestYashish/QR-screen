@@ -27,9 +27,19 @@ export const EASE_PASS = "cubic-bezier(0.4, 0, 0.2, 1)";
  */
 const EASE_POP = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 
-export const OPEN_DURATION = 260;
+export const OPEN_DURATION = 5000;
 /** Leaving is always quicker than arriving — the card is already understood. */
 export const CLOSE_DURATION = 240;
+
+/**
+ * The rest of the entrance is scaled against OPEN_DURATION rather than fixed,
+ * so the scrim and the content stay choreographed with the growth instead of
+ * snapping in while the card is still on its way.
+ */
+const OVERLAY_FADE = Math.round(OPEN_DURATION * 0.64);
+const SECTION_DURATION = Math.round(OPEN_DURATION * 0.58);
+const SECTION_DELAY = Math.round(OPEN_DURATION * 0.18);
+const SECTION_STAGGER = Math.round(OPEN_DURATION * 0.076);
 const REDUCED_DURATION = 140;
 /** How long a live tilt takes to flatten out as the card leaves. */
 const TILT_RELEASE = 240;
@@ -195,7 +205,9 @@ export function animateOpen(
   const startRadius = TILE_RADIUS / geometry.scale;
 
   const animations = [
-    play(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 180 }),
+    play(overlay, [{ opacity: 0 }, { opacity: 1 }], {
+      duration: OVERLAY_FADE,
+    }),
     play(flip, [{ transform: transformOf(geometry) }, { transform: "none" }], {
       duration: OPEN_DURATION,
       easing: EASE_POP,
@@ -216,7 +228,10 @@ export function animateOpen(
           { opacity: 0, transform: "translateY(10px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 180, delay: 60 + index * 22 },
+        {
+          duration: SECTION_DURATION,
+          delay: SECTION_DELAY + index * SECTION_STAGGER,
+        },
       ),
     ),
   ];

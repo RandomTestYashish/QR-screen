@@ -101,7 +101,7 @@ export function PassCard({
 
       <div ref={refs.header} className="relative z-10 flex h-6 items-center">
         <DialogTitle asChild>
-          <h2 className="eyebrow text-ink-2">Access Pass</h2>
+          <h2 className="eyebrow text-ink-2">Members QR</h2>
         </DialogTitle>
       </div>
 

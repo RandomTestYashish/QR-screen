@@ -185,7 +185,10 @@ export function QRModal({
                 Transforms do not affect layout, so this column stays put. */}
             <div
               className="flex flex-col items-center gap-6"
-              style={{ pointerEvents: phase === "open" ? "auto" : "none" }}
+              // Interactive as soon as it is on screen, not only once it has
+            // landed: at this duration, gating on "open" would lock the close
+            // control out for the whole of the growth.
+            style={{ pointerEvents: "auto" }}
             >
               <div
                 ref={flipRef}
