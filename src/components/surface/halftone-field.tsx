@@ -6,6 +6,13 @@ interface HalftoneFieldProps {
   theme: Theme;
 }
 
+/**
+ * Opacity of the whole field. Applied on the element rather than folded into
+ * the per-dot alphas: those are what decide which dots clear ALPHA_CUTOFF, so
+ * scaling them would thin the texture out instead of just dimming it.
+ */
+const FIELD_OPACITY = 0.2;
+
 /** Grid pitch in CSS px, and the ceiling that keeps the count sane. */
 const PITCH = 9;
 const MAX_DOTS = 4400;
@@ -299,6 +306,7 @@ export function HalftoneField({ theme }: HalftoneFieldProps) {
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 z-0 size-full"
+      style={{ opacity: FIELD_OPACITY }}
     />
   );
 }

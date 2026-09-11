@@ -166,6 +166,11 @@ independently.
   fills rather than one per dot. Radius varies freely inside a level — a single
   path holds arcs of any size.
 
+The whole field sits at **20% opacity**, applied on the element rather than
+folded into the per-dot alphas — those are what decide which dots clear the
+visibility cutoff, so scaling them would thin the texture out instead of just
+dimming it.
+
 Measured at 375x812 with the field running: 16.7ms median frame, 18ms worst.
 It parks itself on a hidden tab, and `prefers-reduced-motion` renders one
 frozen frame rather than a blank screen.
