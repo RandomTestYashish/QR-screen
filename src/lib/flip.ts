@@ -18,9 +18,18 @@
  * on the way in rather than as a long elegant settle.
  */
 export const EASE_PASS = "cubic-bezier(0.4, 0, 0.2, 1)";
-export const OPEN_DURATION = 520;
+
+/**
+ * Overshoot for the growth. Carried only by the card's transform: the scale
+ * runs a few percent past its final size and settles back, which is the pop.
+ * Opacity and radius stay on the smooth curve — an overshoot there has nothing
+ * to overshoot into.
+ */
+const EASE_POP = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+
+export const OPEN_DURATION = 260;
 /** Leaving is always quicker than arriving — the card is already understood. */
-export const CLOSE_DURATION = 320;
+export const CLOSE_DURATION = 240;
 const REDUCED_DURATION = 140;
 /** How long a live tilt takes to flatten out as the card leaves. */
 const TILT_RELEASE = 240;
@@ -186,9 +195,10 @@ export function animateOpen(
   const startRadius = TILE_RADIUS / geometry.scale;
 
   const animations = [
-    play(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }),
+    play(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 180 }),
     play(flip, [{ transform: transformOf(geometry) }, { transform: "none" }], {
       duration: OPEN_DURATION,
+      easing: EASE_POP,
     }),
     play(
       backdrop,
@@ -206,7 +216,7 @@ export function animateOpen(
           { opacity: 0, transform: "translateY(10px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 300, delay: 110 + index * 34 },
+        { duration: 180, delay: 60 + index * 22 },
       ),
     ),
   ];

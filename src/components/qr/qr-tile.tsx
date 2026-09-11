@@ -15,8 +15,9 @@ interface QRTileProps {
 }
 
 /** Tile box and QR box, both on the 8pt grid. */
-export const TILE_SIZE = 136;
-export const TILE_QR_SIZE = 88;
+export const TILE_WIDTH = 144;
+export const TILE_HEIGHT = 168;
+export const TILE_QR_SIZE = 112;
 
 /**
  * The compact pass on the home screen. Small on purpose: it reads as a chip
@@ -30,12 +31,13 @@ export const QRTile = React.forwardRef<HTMLButtonElement, QRTileProps>(
       onClick={onOpen}
       aria-haspopup="dialog"
       aria-label="Open access pass"
-      className="pass-surface relative grid place-items-center rounded-[24px] transition-transform duration-300 ease-[var(--ease-pass)] active:scale-[0.975]"
-      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+      className="pass-surface relative flex flex-col items-center rounded-[24px] p-4 transition-transform duration-300 ease-[var(--ease-pass)] active:scale-[0.975]"
+      style={{ width: TILE_WIDTH, height: TILE_HEIGHT }}
     >
       <GlitterSurface theme={theme} intensity={0.7} />
       <div
         ref={qrRef}
+        className="relative z-10"
         style={{
           width: TILE_QR_SIZE,
           height: TILE_QR_SIZE,
@@ -49,6 +51,7 @@ export const QRTile = React.forwardRef<HTMLButtonElement, QRTileProps>(
       >
         <QRGrid pattern={pattern} ghost={false} build />
       </div>
+      <span className="eyebrow relative z-10 mt-2 text-ink-2">Members QR</span>
     </button>
   ),
 );

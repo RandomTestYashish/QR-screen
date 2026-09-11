@@ -17,12 +17,12 @@ export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
 
   return (
     <Button
-      variant="ghost"
+      variant="surface"
       size="icon"
       onClick={onToggle}
       aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
       aria-pressed={!dark}
-      className="relative -mr-2 overflow-hidden hover:bg-chip"
+      className="relative -mr-2 overflow-hidden text-ink shadow-[inset_0_0_0_1px_var(--hairline)]"
     >
       <span className="relative block size-4">
         <Moon

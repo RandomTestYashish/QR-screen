@@ -110,11 +110,14 @@ w=88`, against a tile QR of `x=48, y=372.94, w=88`.
 
 Around that, the card surface fades up and its radius opens from the tile's 24px
 (pre-divided by the scale, so it *reads* as 24px throughout), and the header,
-details and refresh row settle in on a 34ms stagger. 520ms out, 320ms back, on
-`cubic-bezier(0.4, 0, 0.2, 1)` — a balanced S-curve rather than one of the
-heavily front-loaded "expressive" ones, which spend the back half of the
-duration covering the last few percent of the distance and read as the card
-sticking on the way in.
+details and refresh row settle in on a 22ms stagger. 260ms out, 240ms back.
+
+The growth carries an overshoot — `cubic-bezier(0.34, 1.4, 0.64, 1)` — so the
+card runs about 2.5% past its final size and settles back. That pop is on the
+card's **transform only**; opacity and radius stay on the smooth
+`cubic-bezier(0.4, 0, 0.2, 1)`, since an overshoot there has nothing to
+overshoot into. Closing has no bounce: a shrink that undershoots past the tile
+and comes back reads as a fault, not a flourish.
 
 Closing starts from a **snapshot** of where the card actually is, not from where
 a finished open would have left it, so interrupting the growth reverses from
@@ -147,10 +150,10 @@ and never touches its contrast.
 
 ## Screens
 
-The home screen carries no text at all — no wordmark, no headline, no metadata.
-Just the pass on the exact centre of the screen, a refresh icon hanging below it
+The home screen carries one word pair: the pass, labelled `MEMBERS QR` inside
+its own box, on the centre of the screen, with a refresh icon hanging below it
 and a theme toggle in the corner. The refresh control is positioned off a
-wrapper sized to the tile, so it cannot pull the QR off centre.
+wrapper sized to the tile, so it cannot pull the box off centre.
 
 The card's dismiss control sits *outside* the card, centred 24px below it. It
 has to be a sibling of the element carrying the FLIP transform rather than a
