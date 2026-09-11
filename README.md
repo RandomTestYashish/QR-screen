@@ -139,6 +139,37 @@ instead of being snapped square by the engine stopping.
 
 Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
 
+## The background
+
+An animated halftone field: a grid of dots, each one sized and lit by the
+height of a slowly deforming surface underneath it. Ridges bloom into large
+bright dots, troughs fall away to near-invisible specks, and the ridges travel
+— so it reads as one breathing surface rather than as particles moving
+independently.
+
+- **One canvas, no DOM per dot.** ~3,800 dots at a 9px pitch on a 375x812
+  frame, with the pitch widening automatically if a larger box would push the
+  count past its ceiling.
+- **Layered sines, not a noise library.** Four waves at incommensurable
+  frequencies plus two slow-drifting ripple centres: coherent, never visibly
+  repeating, a few trig calls per dot, no dependency.
+- **Both axes are measured in *widths*.** Normalising each axis by its own
+  dimension squashes every wave into horizontal banding on a 375x812 frame —
+  the waves have to be round before they can flow.
+- **A low-frequency swell** tilts whole regions closer to or further from the
+  viewer, which is what gives the field depth rather than evenly scattered
+  sparkle.
+- **A soft centre falloff** keeps the middle calm. It does double duty: the
+  reference keeps large dark areas of its own, and the pass sits in the centre
+  and has to stay legible.
+- **Alpha is quantised into eight levels** so the whole field draws in eight
+  fills rather than one per dot. Radius varies freely inside a level — a single
+  path holds arcs of any size.
+
+Measured at 375x812 with the field running: 16.7ms median frame, 18ms worst.
+It parks itself on a hidden tab, and `prefers-reduced-motion` renders one
+frozen frame rather than a blank screen.
+
 ## Tilt and glitter
 
 `TiltEngine` runs one rAF loop that smooths `deviceorientation` into two
