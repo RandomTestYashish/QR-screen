@@ -144,7 +144,10 @@ Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
 A field of dots on a fixed grid, each blinking on its own clock. What
 distinguishes it from a wave field is that the dots are *independent*: every
 one gets its own period (1.8-5.2s) and phase, so at any moment a scattered
-handful are lit and the rest sit near the floor. Nothing travels across the
+handful are lit and the rest sit near the floor. ~4,900 dots at an 8px pitch,
+with radii expressed as fractions of that pitch — a denser grid gets
+proportionally finer dots, so it reads as higher resolution rather than as the
+same dots crowded together. Nothing travels across the
 grid and nothing moves — only the light changes. Roughly 8% are "hero" dots
 that flash brighter and swell slightly.
 

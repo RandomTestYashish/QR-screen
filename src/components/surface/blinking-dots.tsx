@@ -12,15 +12,20 @@ interface BlinkingDotsProps {
  * decide which dots clear ALPHA_CUTOFF, so scaling them would thin the grid
  * out instead of just dimming it.
  */
-const FIELD_OPACITY = 0.55;
+const FIELD_OPACITY = 0.34;
 
-/** Grid pitch in CSS px, and the ceiling that keeps the count sane. */
-const PITCH = 14;
-const MAX_DOTS = 3200;
+/**
+ * Grid pitch in CSS px, and the ceiling that keeps the count sane.
+ * Radii are fractions of the pitch, so a denser grid gets proportionally
+ * finer dots — the field reads as higher resolution rather than as the same
+ * dots crowded together.
+ */
+const PITCH = 8;
+const MAX_DOTS = 6000;
 
-/** Dot radius in CSS px. Blinking dots vary in light, not much in size. */
-const BASE_R = 0.9;
-const HERO_R = 1.7;
+/** Dot radius. Blinking dots vary in light, not much in size. */
+const BASE_R = PITCH * 0.064;
+const HERO_R = PITCH * 0.121;
 /** Share of dots that blink brighter and larger than the rest. */
 const HERO_SHARE = 0.08;
 
@@ -38,9 +43,9 @@ interface Palette {
 }
 
 const PALETTE: Record<Theme, Palette> = {
-  dark: { dot: "255,255,255", floor: 0.06, peak: 0.92 },
+  dark: { dot: "255,255,255", floor: 0.05, peak: 0.85 },
   // Graphite on paper. The same peak would be shouting against a light ground.
-  light: { dot: "10,10,13", floor: 0.05, peak: 0.46 },
+  light: { dot: "10,10,13", floor: 0.04, peak: 0.42 },
 };
 
 function mulberry32(seed: number) {
@@ -172,7 +177,9 @@ export function BlinkingDots({ theme }: BlinkingDotsProps) {
         store[at] = px[i] * dpr;
         store[at + 1] = py[i] * dpr;
         // Hero dots swell a little as they flash; the rest hold their size.
-        store[at + 2] = (pr[i] + lit * (pr[i] > BASE_R ? 0.5 : 0.15)) * dpr;
+        store[at + 2] =
+          (pr[i] + lit * (pr[i] > BASE_R ? PITCH * 0.036 : PITCH * 0.011)) *
+          dpr;
         counts[level]++;
       }
 
