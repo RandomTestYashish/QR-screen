@@ -1,5 +1,5 @@
 import * as React from "react";
-import { QRTile } from "@/components/qr/qr-tile";
+import { IdentityCard } from "@/components/identity-card";
 import { QRModal } from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BlinkingDots } from "@/components/surface/blinking-dots";
@@ -64,13 +64,11 @@ export default function App() {
 
       {/* The whole screen is the pass. No wordmark, no headline, no metadata —
           the only text anywhere is inside the card you open. */}
-      <main className="relative z-10 h-full">
-        <div className="absolute right-6 top-6 z-20">
-          <ThemeToggle theme={theme} onToggle={toggle} />
-        </div>
-
-        <div className="absolute inset-0 grid place-items-center">
-          <QRTile
+      <main className="relative z-10 flex h-full flex-col">
+        {/* The card centres in whatever is left above the switch, which is
+            what keeps its margins even top and bottom. */}
+        <div className="grid flex-1 place-items-center px-6">
+          <IdentityCard
             ref={tileRef}
             pattern={pattern}
             theme={theme}
@@ -78,6 +76,10 @@ export default function App() {
             qrHidden={sharedActive}
             onOpen={handleOpen}
           />
+        </div>
+
+        <div className="flex shrink-0 justify-center pb-10">
+          <ThemeToggle theme={theme} onToggle={toggle} />
         </div>
       </main>
 
