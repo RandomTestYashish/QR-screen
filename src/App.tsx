@@ -2,6 +2,7 @@ import * as React from "react";
 import { QRTile } from "@/components/qr/qr-tile";
 import { QRModal } from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BlinkingDots } from "@/components/surface/blinking-dots";
 import { useTheme } from "@/hooks/use-theme";
 import { createPattern } from "@/lib/pattern";
 import { TiltEngine } from "@/lib/tilt";
@@ -59,6 +60,8 @@ export default function App() {
 
   return (
     <div ref={setDevice} className="device">
+      <BlinkingDots theme={theme} />
+
       {/* The whole screen is the pass. No wordmark, no headline, no metadata —
           the only text anywhere is inside the card you open. */}
       <main className="relative z-10 h-full">

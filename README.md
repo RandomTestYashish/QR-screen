@@ -141,12 +141,26 @@ Only `transform`, `opacity` and `border-radius` animate. Nothing touches layout.
 
 ## The background
 
-A flat fill — `#050507` in dark, `#f2f1ed` in light — and nothing else. No
-gradient, no texture, nothing animating behind the pass.
+A field of dots on a fixed grid, each blinking on its own clock. What
+distinguishes it from a wave field is that the dots are *independent*: every
+one gets its own period (1.8-5.2s) and phase, so at any moment a scattered
+handful are lit and the rest sit near the floor. Nothing travels across the
+grid and nothing moves — only the light changes. Roughly 8% are "hero" dots
+that flash brighter and swell slightly.
 
-An animated halftone dot field lived here for a few revisions (canvas, ~8,800
-dots on a deforming sine surface, 60fps). It was removed in favour of the solid
-fill; `git log` has it if it is ever wanted back.
+The blink curve is a **cubed** sine, not a raw one: a plain sine reads as a
+slow pulse, while cubing holds each dot near the floor for most of its cycle
+and gives it a brief flash.
+
+Same shape as the rest of the surfaces here — one canvas, no DOM per dot,
+alpha quantised into eight levels so the field draws in eight fills, parked on
+a hidden tab, one frozen frame under `prefers-reduced-motion`. `FIELD_OPACITY`
+at the top of the file is the single strength knob.
+
+> Asked for as `npx shadcn@latest add @reactbits-starter/blinking-dots-tw`.
+> That registry is unreachable from the build environment, so this is a local
+> implementation of the same effect rather than the registry component — see
+> the note in the commit that introduced it.
 
 ## Tilt and glitter
 
