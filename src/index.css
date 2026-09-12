@@ -61,6 +61,19 @@
   --chip: rgb(255 255 255 / 0.06);
   --accent: #b9f2d0;
 
+  --surface-gradient:
+    radial-gradient(
+      112% 74% at 18% 0%,
+      rgb(255 255 255 / 0.07) 0%,
+      transparent 58%
+    ),
+    linear-gradient(
+      158deg,
+      var(--card-a) 0%,
+      var(--card-b) 52%,
+      var(--card-c) 100%
+    );
+
   --scrim: rgb(3 3 5 / 0.72);
   --glitter-blend: screen;
   --glitter-alpha: 0.9;
@@ -85,6 +98,19 @@
   --hairline: rgb(10 10 13 / 0.09);
   --chip: rgb(10 10 13 / 0.05);
   --accent: #1f6b47;
+
+  --surface-gradient:
+    radial-gradient(
+      112% 74% at 18% 0%,
+      rgb(255 255 255 / 0.9) 0%,
+      transparent 58%
+    ),
+    linear-gradient(
+      158deg,
+      var(--card-a) 0%,
+      var(--card-b) 52%,
+      var(--card-c) 100%
+    );
 
   --scrim: rgb(223 222 217 / 0.82);
   --glitter-blend: multiply;
@@ -169,7 +195,7 @@ body,
     height: min(812px, 100dvh);
     overflow: hidden;
     isolation: isolate;
-    background: var(--bg);
+    background: var(--surface-gradient);
     transition:
       background-color 420ms var(--ease-pass),
       box-shadow 420ms var(--ease-pass);
@@ -205,39 +231,13 @@ body,
   .pass-surface {
     isolation: isolate;
     overflow: hidden;
-    background:
-      radial-gradient(
-        112% 74% at 18% 0%,
-        rgb(255 255 255 / 0.07) 0%,
-        transparent 58%
-      ),
-      linear-gradient(
-        158deg,
-        var(--card-a) 0%,
-        var(--card-b) 52%,
-        var(--card-c) 100%
-      );
+    background: var(--surface-gradient);
     box-shadow:
       inset 0 0 0 1px var(--card-edge),
       var(--card-shadow);
     transition:
       background-color 420ms var(--ease-pass),
       box-shadow 420ms var(--ease-pass);
-  }
-
-  [data-theme="light"] .pass-surface {
-    background:
-      radial-gradient(
-        112% 74% at 18% 0%,
-        rgb(255 255 255 / 0.9) 0%,
-        transparent 58%
-      ),
-      linear-gradient(
-        158deg,
-        var(--card-a) 0%,
-        var(--card-b) 52%,
-        var(--card-c) 100%
-      );
   }
 
   /* Tracking-heavy micro labels. */

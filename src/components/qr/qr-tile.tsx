@@ -101,7 +101,7 @@ export const QRTile = React.forwardRef<HTMLButtonElement, QRTileProps>(
         >
           <QRGrid pattern={pattern} ghost={false} build />
         </div>
-        <span className="eyebrow relative z-10 mt-2 text-ink-2">Members QR</span>
+        <span className="eyebrow relative z-10 mt-2 text-ink-2">Access QR</span>
       </button>
     );
   },
