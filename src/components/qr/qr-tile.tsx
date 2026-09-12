@@ -17,7 +17,7 @@ interface QRTileProps {
 }
 
 /** Panel box and QR box, both on the 8pt grid. */
-export const TILE_WIDTH = 120;
+export const TILE_WIDTH = 112;
 export const TILE_HEIGHT = 128;
 export const TILE_QR_SIZE = 80;
 

@@ -19,7 +19,14 @@ interface IdentityCardProps {
  */
 export const CARD_WIDTH = 327;
 export const CARD_HEIGHT = 160;
-const AVATAR = 64;
+/**
+ * Left cluster budget across the 327 card, all on the 8pt grid:
+ * 16 pad + 72 avatar + 16 gap + 79 text + 16 gap + 112 panel + 16 pad.
+ * The name is the constraint — "Founding" has to sit on one line inside the
+ * text column, which is why the avatar grew into the space rather than the
+ * gap doing it.
+ */
+const AVATAR = 72;
 
 /**
  * The pass as a landscape credential: holder on the left, code on the right.
@@ -50,8 +57,8 @@ export const IdentityCard = React.forwardRef<
     />
 
     <div className="relative z-10 ml-4 min-w-0 flex-1">
-      <p className="text-[17px] font-semibold leading-[22px] tracking-[-0.02em] text-ink">
-        Yashish Kapoor
+      <p className="text-[16px] font-semibold leading-[21px] tracking-[-0.02em] text-ink">
+        Founding Member
       </p>
       <p className="mt-2 text-[13px] tabular-nums tracking-[0.04em] text-ink-2">
         99XXXXX37
