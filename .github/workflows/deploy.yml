@@ -32,7 +32,11 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # enablement turns Pages on for the repo if it is off, so the first
+      # deploy needs no manual setup in repository settings.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
