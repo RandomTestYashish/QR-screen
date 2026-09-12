@@ -191,6 +191,17 @@ size, weight and italic rather than a second family. Sora ships no true italic,
 so the few editorial accents use a synthesised oblique — which is why they're
 used sparingly and at small sizes.
 
+Switching theme is not just a recolour: the pass takes a **breath** with it —
+a swell to 1.055 peaking at ~230ms and settling back to rest by ~550ms, run a
+little longer than the 420ms colour cross-fade so the card is still moving as
+the new palette lands. That is what makes the two read as one event.
+
+The FLIP has to be defended from it: the tile is the shared element's origin,
+so opening the card mid-breath would solve the transition against a size the
+tile is about to leave. The modal cancels any in-flight breath before it
+measures, so an open at any point during the swell still grows from the tile's
+resting geometry.
+
 **Two hand-tuned themes**, not a mechanical inversion: dark is near-black
 gradient with off-white type and white modules; light is warm paper with
 graphite type, a cooler card and black modules. Both share one token set and

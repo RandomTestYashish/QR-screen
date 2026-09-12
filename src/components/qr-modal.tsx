@@ -107,6 +107,13 @@ export function QRModal({
   React.useLayoutEffect(() => {
     if (phase !== "opening" && phase !== "closing") return;
 
+    // The tile runs its own breath when the theme changes. If one is still
+    // in flight the tile is mid-scale, and measuring it would solve the FLIP
+    // against a size the tile is about to leave.
+    for (const animation of triggerRef.current?.getAnimations() ?? []) {
+      animation.cancel();
+    }
+
     const targets = collectTargets();
     const source = sourceRef.current?.getBoundingClientRect();
     if (!targets || !source) {
